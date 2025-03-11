@@ -1,0 +1,27 @@
+.camera-feed {
+    padding: 2rem;
+  }
+  
+  video {
+    width: 100%;
+    max-width: 600px;
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+  }
+  
+  button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .result {
+    margin-top: 2rem;
+    text-align: left;
+    max-width: 600px;
+    margin: 2rem auto;
+  }
