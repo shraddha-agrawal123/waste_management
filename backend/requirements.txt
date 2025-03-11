@@ -1,0 +1,6 @@
+Flask==2.3.2
+tensorflow==2.16.1
+opencv-python==4.7.0.72
+numpy==1.23.5
+scikit-learn==1.2.2
+joblib==1.2.0
