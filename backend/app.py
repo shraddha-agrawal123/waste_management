@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Import CORS
 import cv2
 import numpy as np
 from tensorflow.keras.models import load_model
@@ -9,6 +10,7 @@ import logging
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -53,16 +55,6 @@ def preprocess_image(file):
         logger.error(f"Error preprocessing image: {e}")
         raise
 
-# Helper function to validate soil features
-def validate_soil_features(soil_features):
-    if not soil_features or len(soil_features) != 7:
-        raise ValueError("Soil features must contain exactly 7 values.")
-    try:
-        soil_features = list(map(float, soil_features))
-    except ValueError:
-        raise ValueError("Soil features must be a comma-separated list of numbers.")
-    return np.array([soil_features])  # Shape: (1, 7)
-
 # Classify waste endpoint
 @app.route('/classify_waste', methods=['POST'])
 def classify_waste():
@@ -78,45 +70,9 @@ def classify_waste():
         logger.debug(f"Input Image Shape: {input_image.shape}")  # Should be (1, 224, 224, 3)
         logger.debug(f"Input Image Values (Min, Max): {input_image.min()}, {input_image.max()}")  # Should be 0.0 and 1.0
 
-        # Get soil features from the request
-        soil_features = None
-
-        # Check if soil_features is sent as JSON
-        if request.is_json and 'soil_features' in request.json:
-            soil_features = request.json['soil_features']
-        # Check if soil_features is sent as form-data
-        elif 'soil_features' in request.form:
-            soil_features = request.form['soil_features']
-        else:
-            return jsonify({"error": "Soil features not provided"}), 400
-
-        # Debug: Print raw soil_features value
-        logger.debug(f"Raw soil_features: {soil_features}")
-
-        # Validate soil_features
-        if isinstance(soil_features, str):
-            # Split the string by commas and convert to a list of floats
-            try:
-                soil_features = list(map(float, soil_features.split(',')))
-            except ValueError:
-                return jsonify({"error": "Soil features must be a comma-separated list of numbers."}), 400
-        elif isinstance(soil_features, list):
-            # Ensure the list contains exactly 7 values
-            if len(soil_features) != 7:
-                return jsonify({"error": "Soil features must contain exactly 7 values."}), 400
-            try:
-                soil_features = list(map(float, soil_features))
-            except ValueError:
-                return jsonify({"error": "Soil features must be a list of numbers."}), 400
-        else:
-            return jsonify({"error": "Invalid format for soil_features. It must be a comma-separated string or a list of numbers."}), 400
-
-        # Convert to numpy array
+        # Use default soil features if not provided
+        soil_features = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # Default values
         soil_features = np.array([soil_features])  # Shape: (1, 7)
-
-        # Debug: Print soil_features shape and values
-        logger.debug(f"Soil Features Shape: {soil_features.shape}")  # Should be (1, 7)
-        logger.debug(f"Soil Features Values: {soil_features}")
 
         # Predict waste class and nutrient levels
         waste_class_pred, nutrient_levels_pred = waste_model.predict([input_image, soil_features])
@@ -141,6 +97,6 @@ def classify_waste():
     except Exception as e:
         logger.error(f"Error in classify_waste: {e}")
         return jsonify({"error": str(e)}), 500
-    
+
 if __name__ == '__main__':
     app.run(debug=True)
