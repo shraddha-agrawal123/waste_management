@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score
 import joblib
 
 # Load soil dataset
-soil_data = pd.read_csv('../datasets/soil_data.csv')
+soil_data = pd.read_csv(r'C:\Users\shrad\mini_project\ai-waste-project\backend\datasets\soil_nutrient_with_best.csv')
 
 # Features and target
 X = soil_data.drop('best_nutrient', axis=1)
